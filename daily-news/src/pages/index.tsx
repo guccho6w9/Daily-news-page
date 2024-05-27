@@ -10,14 +10,18 @@ const NEWS_API_KEY = 'UC8huf3pEYUUTVWejnTzOlJBd98BlsrxSeIhDupW';
 const WEATHER_API_KEY = 'f996ff1ddc2505487b9e0b8ad3411379';
 
 // API URLs
+
+//En noticias se pasa como variable tanto el pais como la key
 const NEWS_API_URL = (country: string) => `https://api.thenewsapi.com/v1/news/top?api_token=${NEWS_API_KEY}&locale=${country}&limit=3`;
+//En el clima se pasa la ciudad, pais y llave como variable
 const WEATHER_API_URL = (city: string, country: string) => `https://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${WEATHER_API_KEY}&units=metric`;
 
+//interfaz del carrusel de noticias
 interface Article {
   title: string;
   image_url: string | null;
 }
-
+//interfaz que muestra la info del clima
 interface WeatherData {
   temp: number;
   description: string;
@@ -33,7 +37,7 @@ const Home: React.FC = () => {
   const [selectedNewsIndex, setSelectedNewsIndex] = useState(0);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Fetch news articles based on the country
+  // El fetch se basa en el pais ingresado al buscar clima
   const fetchNews = async (country: string) => {
     try {
       const response = await axios.get(NEWS_API_URL(country));
@@ -43,7 +47,7 @@ const Home: React.FC = () => {
     }
   };
 
-  // Fetch weather data based on the city and country
+  // Fetch de clima basado en ciudad y pais que se ingresen
   const fetchWeather = async (city: string, country: string) => {
     try {
       const response = await axios.get(WEATHER_API_URL(city, country));
@@ -58,7 +62,7 @@ const Home: React.FC = () => {
     }
   };
 
-  // Fetch news and weather data when the component mounts and when the country or city changes
+  // Si se cambian la ciudad o pais se hacen nuevos fetch
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -69,17 +73,17 @@ const Home: React.FC = () => {
     fetchData();
   }, [country, city]);
 
-  // Function to get a valid image URL or a placeholder if the image URL is null
+  // Funcion que valida si hay una imagen en las noticias, si no tiene imagen trae una imagen stock
   const getValidImageUrl = (url: string | null) => {
     return url ? url : 'https://via.placeholder.com/800x400?text=No+Image+Available';
   };
 
-  // Handle input change and update city and country state
+  // maneja el input de pais y su estado
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
 
-  // Handle search click, update city and country, and fetch data
+  // funcion que controla el click y separa la info de pais y ciudad por coma
   const handleSearchClick = () => {
     const [newCity, newCountry] = inputValue.split(',').map(s => s.trim());
     setCity(newCity);
@@ -92,11 +96,11 @@ const Home: React.FC = () => {
 
   return (
     <div className="p-5 max-w-7xl mx-auto">
-      <h1 className="text-center text-4xl font-bold mb-8">Noticias Diarias</h1>
+      <h1 className="text-center text-4xl font-bold mb-8">Clima actual en {city}, {country}</h1>
 
-      {/* Weather Section */}
+      {/* Seccion de clima*/}
       <div className="mb-8">
-        <h2 className="text-center text-2xl mb-4">Clima Actual</h2>
+        
         <div className="flex justify-center items-center mb-4">
           <input
             type="text"
@@ -121,6 +125,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* News Section */}
+      <h2 className="text-center text-2xl mb-4">Ultimas noticias en {city}, {country}</h2>
       <div className="relative">
         {news.length > 0 && (
           <div>
