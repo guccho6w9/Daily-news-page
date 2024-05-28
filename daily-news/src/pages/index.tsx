@@ -6,23 +6,36 @@ import 'slick-carousel/slick/slick-theme.css';
 import '@/app/globals.css';
 
 // API keys
-const NEWS_API_KEY = 'UC8huf3pEYUUTVWejnTzOlJBd98BlsrxSeIhDupW';
-const WEATHER_API_KEY = 'f996ff1ddc2505487b9e0b8ad3411379';
+const NEWS_API_KEY = process.env.NEXT_PUBLIC_NEWS_API_KEY;
+const WEATHER_API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
 
 // API URLs
+const NEWS_API_URL = (country: string) => `https://api.thenewsapi.com/v1/news/top?api_token=${NEWS_API_KEY}&locale=${country}&limit=3`; //por defecto solo puedo pedirle 3 noticias a la api, mi cuenta es gratuita
 
-//En noticias se pasa como variable tanto el pais como la key
-const NEWS_API_URL = (country: string) => `https://api.thenewsapi.com/v1/news/top?api_token=${NEWS_API_KEY}&locale=${country}&limit=3`;
-//En el clima se pasa la ciudad, pais y llave como variable
-const WEATHER_API_URL = (city: string, country: string) => `https://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${WEATHER_API_KEY}&units=metric`;
+const WEATHER_API_URL = (city: string, country: string) => `https://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${WEATHER_API_KEY}&units=metric&lang=es`;
+const FORECAST_API_URL = (city: string, country: string) => `https://api.openweathermap.org/data/2.5/forecast?q=${city},${country}&appid=${WEATHER_API_KEY}&units=metric&lang=es`;
 
-//interfaz del carrusel de noticias
 interface Article {
   title: string;
   image_url: string | null;
 }
-//interfaz que muestra la info del clima
+
 interface WeatherData {
+  temp: number;
+  feels_like: number;
+  temp_min: number;
+  temp_max: number;
+  humidity: number;
+  pressure: number;
+  wind_speed: number;
+  description: string;
+  icon: string;
+  rain_chance: number;
+  air_quality: number | null;
+}
+
+interface ForecastData {
+  date: string;
   temp: number;
   description: string;
   icon: string;
@@ -31,13 +44,14 @@ interface WeatherData {
 const Home: React.FC = () => {
   const [news, setNews] = useState<Article[]>([]);
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [forecast, setForecast] = useState<ForecastData[]>([]);
   const [country, setCountry] = useState<string>('us');
   const [city, setCity] = useState<string>('New York');
   const [inputValue, setInputValue] = useState<string>('');
   const [selectedNewsIndex, setSelectedNewsIndex] = useState(0);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // El fetch se basa en el pais ingresado al buscar clima
+  // Fetch articulos de noticias de la api
   const fetchNews = async (country: string) => {
     try {
       const response = await axios.get(NEWS_API_URL(country));
@@ -47,43 +61,84 @@ const Home: React.FC = () => {
     }
   };
 
-  // Fetch de clima basado en ciudad y pais que se ingresen
+  // Fetch datos del clima segun ciudad y pais
   const fetchWeather = async (city: string, country: string) => {
     try {
       const response = await axios.get(WEATHER_API_URL(city, country));
       const data = response.data;
+
+      // Fetch calidad de aire
+      const airQualityResponse = await axios.get(`http://api.openweathermap.org/data/2.5/air_pollution?lat=${data.coord.lat}&lon=${data.coord.lon}&appid=${WEATHER_API_KEY}`);
+      const airQualityData = airQualityResponse.data.list[0].main.aqi;
+
       setWeather({
         temp: data.main.temp,
+        feels_like: data.main.feels_like,
+        temp_min: data.main.temp_min,
+        temp_max: data.main.temp_max,
+        humidity: data.main.humidity,
+        pressure: data.main.pressure,
+        wind_speed: data.wind.speed,
         description: data.weather[0].description,
-        icon: `http://openweathermap.org/img/wn/${data.weather[0].icon}.png`,
+        icon: `http://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`,
+        rain_chance: data.rain ? data.rain['1h'] : 0,
+        air_quality: airQualityData
       });
     } catch (error) {
       console.error('Error fetching weather:', error);
     }
   };
 
-  // Si se cambian la ciudad o pais se hacen nuevos fetch
+  // Fetch pronostico del clima dias proximo
+  const fetchForecast = async (city: string, country: string) => {
+    try {
+      const response = await axios.get(FORECAST_API_URL(city, country));
+      const data = response.data.list.slice(0, 5).map((item: any) => ({
+        date: item.dt_txt,
+        temp: item.main.temp,
+        temp_min: item.main.temp_min,
+        temp_max: item.main.temp_max,
+        description: item.weather[0].description,
+        icon: `http://openweathermap.org/img/wn/${item.weather[0].icon}.png`
+      }));
+      setForecast(data);
+    } catch (error) {
+      console.error('Error fetching forecast:', error);
+    }
+  };
+
+  interface ForecastData {
+    date: string;
+    temp: number;
+    temp_min: number;
+    temp_max: number;
+    description: string;
+    icon: string;
+  }
+
+  // Fetch de nuevo cada vez que se cambie la ubicacion
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       await fetchNews(country);
       await fetchWeather(city, country);
+      await fetchForecast(city, country);
       setLoading(false);
     };
     fetchData();
   }, [country, city]);
 
-  // Funcion que valida si hay una imagen en las noticias, si no tiene imagen trae una imagen stock
+  // Funcion que se asegura que si no tiene imagen la noticia se use un placeholder
   const getValidImageUrl = (url: string | null) => {
     return url ? url : 'https://via.placeholder.com/800x400?text=No+Image+Available';
   };
 
-  // maneja el input de pais y su estado
+  // control de input para pais y ciudad
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
 
-  // funcion que controla el click y separa la info de pais y ciudad por coma
+  // se maneja el dato del input al hacer click buscar, se separa segun coma
   const handleSearchClick = () => {
     const [newCity, newCountry] = inputValue.split(',').map(s => s.trim());
     setCity(newCity);
@@ -96,11 +151,11 @@ const Home: React.FC = () => {
 
   return (
     <div className="p-5 max-w-7xl mx-auto">
-      <h1 className="text-center text-4xl font-bold mb-8">Clima actual en {city}, {country}</h1>
+      <h1 className="text-center text-4xl font-bold mb-8 color-teal">Clima actual en {city}, {country}</h1>
+    {/* seccion de clima */}
 
-      {/* Seccion de clima*/}
+      {/* barra de busqueda */}
       <div className="mb-8">
-        
         <div className="flex justify-center items-center mb-4">
           <input
             type="text"
@@ -111,21 +166,54 @@ const Home: React.FC = () => {
           />
           <button
             onClick={handleSearchClick}
-            className="ml-2 p-2 bg-blue-500 text-white rounded"
+            className="ml-2 p-2 bg-blue-400 hover:bg-blue-600 text-white rounded"
           >
             Buscar
           </button>
         </div>
+
+        {/* seccio de clima*/}
         {weather && (
-          <div className="text-center">
-            <img src={weather.icon} alt={weather.description} className="mx-auto" />
-            <div>{`${weather.temp}°C - ${weather.description}`}</div>
+          <div className="text-center flex flex-col items-center">
+            <div className="flex items-center mb-4  fondo-peach rounded-xl">
+              <img src={weather.icon} alt={weather.description} style={{ width: '150px', height: '150px' }} />
+              <div className="ml-4">
+                <div className="text-5xl">{`${weather.temp}°C`}</div>
+                <div className="text-2xl">{weather.description}</div>
+              </div>
+              <div className="ml-4 text-left">
+                <div className="text-lg">Sensación térmica: {weather.feels_like}°C</div>
+                <div className="text-lg">Temp. Máxima: {weather.temp_max}°C</div>
+                <div className="text-lg">Temp. Mínima: {weather.temp_min}°C</div>
+              </div>
+            </div>
+            <div className="text-lg">Humedad: {weather.humidity}%</div>
+            <div className="text-lg">Presión: {weather.pressure} hPa</div>
+            <div className="text-lg">Viento: {weather.wind_speed} m/s</div>
+            <div className="text-lg">Chances de lluvia: {weather.rain_chance}%</div>
+            <div className="text-lg">Calidad del aire: {weather.air_quality ? `Índice ${weather.air_quality}` : 'No disponible'}</div>
           </div>
         )}
       </div>
 
-      {/* News Section */}
-      <h2 className="text-center text-2xl mb-4">Ultimas noticias en {city}, {country}</h2>
+      {/* seccion de pronostico de clima */}
+      <div className="mb-8">
+        <h2 className="text-center text-2xl mb-4">Pronóstico del clima</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {forecast.map((day, index) => (
+            <div key={index} className="text-center bg-teal-600 p-4 rounded-xl">
+              <div>{new Date(day.date).toLocaleDateString()}</div>
+              <img src={day.icon} alt={day.description} className="mx-auto " />
+              <div>{`${day.temp}°C`}</div>
+              <div>{`Mín: ${day.temp_min}°C - Máx: ${day.temp_max}°C`}</div>
+              <div>{day.description}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* seccion noticias*/}
+      <h2 className="text-center text-2xl mb-4">Últimas noticias en {city}, {country}</h2>
       <div className="relative">
         {news.length > 0 && (
           <div>
@@ -141,13 +229,13 @@ const Home: React.FC = () => {
         )}
       </div>
 
-      {/* News Navigation */}
+      {/* navegador de noticias */}
       <div className="flex justify-center mt-8 space-x-4">
         {news.map((article, index) => (
           <div
             key={index}
             onClick={() => setSelectedNewsIndex(index)}
-            className={`cursor-pointer p-3 border ${selectedNewsIndex === index ? 'border-black' : 'border-gray-300'} rounded-lg mb-4 w-1/5`}
+            className={`cursor-pointer p-3 ${selectedNewsIndex === index ? 'border-black' : 'border-gray-300'} bg-gray-600 hover:bg-gray-800 rounded-xl mb-4 w-1/5`}
           >
             <img
               src={getValidImageUrl(article.image_url)}
