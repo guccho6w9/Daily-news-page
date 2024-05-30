@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-white: #ffffff;
+  --background-cool: #dff0f9;
+  --background-moderate: #b8faaa;
+  --background-warm: #fcf098;
+  --background-hot: #f96f5a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(to bottom, transparent, black);
+  transition: background-color 0.5s;
+}
+
+.background-white {
+  background-color: var(--background-white);
+}
+
+.background-cool {
+  background-color: var(--background-cool);
+}
+
+.background-moderate {
+  background-color: var(--background-moderate);
+}
+
+.background-warm {
+  background-color: var(--background-warm);
+}
+
+.background-hot {
+  background-color: var(--background-hot);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  .font-outline-2 {
+    -webkit-text-stroke: 2px black;
+  }
+  .font-outline-4 {
+    -webkit-text-stroke: 4px black;
+  }
+}
+
+.color-teal {
+  color: #215350;
+}
+.color-peach {
+  color: #e47b64;
+}
+
+.fondo-teal {
+  background-color: #215350;
+}
+
+.fondo-peach {
+  background-color: #e47b64;
+}
