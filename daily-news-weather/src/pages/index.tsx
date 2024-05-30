@@ -68,7 +68,7 @@ const Home: React.FC = () => {
       const data = response.data;
 
       // Fetch calidad de aire
-      const airQualityResponse = await axios.get(`http://api.openweathermap.org/data/2.5/air_pollution?lat=${data.coord.lat}&lon=${data.coord.lon}&appid=${WEATHER_API_KEY}`);
+      const airQualityResponse = await axios.get(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${data.coord.lat}&lon=${data.coord.lon}&appid=${WEATHER_API_KEY}`);
       const airQualityData = airQualityResponse.data.list[0].main.aqi;
 
       setWeather({
@@ -80,7 +80,7 @@ const Home: React.FC = () => {
         pressure: data.main.pressure,
         wind_speed: data.wind.speed,
         description: data.weather[0].description,
-        icon: `http://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`,
+        icon: `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`,
         rain_chance: data.rain ? data.rain['1h'] : 0,
         air_quality: airQualityData
       });
@@ -190,6 +190,7 @@ const Home: React.FC = () => {
         </div>
 
         {/* seccion de clima */}
+        {/* esta parte del cuadro no se esta mostrando en vercel */}
         {weather && (
           <div className="text-center flex flex-col items-center">
             <div className="flex items-center mb-4 fondo-peach rounded-xl">
