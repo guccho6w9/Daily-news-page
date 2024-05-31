@@ -3,6 +3,7 @@ import axios from 'axios';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import '@/app/globals.css';
+import Footer from '@/components/footer'; //importado footer.js
 import '@fortawesome/fontawesome-free/css/all.min.css'; // Importa Font Awesome
 
 // API keys
@@ -271,7 +272,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* navegador de noticias */}
-      <div className="flex flex-row flex-wrap justify-center mt-8 space-x-2 sm:space-x-4">
+      <div className="flex flex-row flex-wrap justify-center mt-8 space-x-2 sm:space-x-4 mb-20">
         {news.map((article, index) => (
           <div
             key={index}
@@ -288,7 +289,9 @@ const Home: React.FC = () => {
             </div>
           </div>
         ))}
+        
       </div>
+      <Footer />
     </div>
   );
 };
