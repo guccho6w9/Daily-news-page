@@ -179,7 +179,7 @@ const Home: React.FC = () => {
             value={inputValue}
             onChange={handleInputChange}
             placeholder="Ingresa la ciudad y país (e.g., Santiago del Estero, ar)"
-            className="border text-black p-2 rounded w-1/2"
+            className="border text-black p-2 rounded w-full md:w-1/2"
           />
           <button
             onClick={handleSearchClick}
@@ -190,26 +190,25 @@ const Home: React.FC = () => {
         </div>
 
         {/* seccion de clima */}
-        {/* esta parte del cuadro no se esta mostrando en vercel */}
         {weather && (
           <div className="text-center flex flex-col items-center">
-            <div className="flex items-center mb-4 fondo-peach rounded-xl">
-              <img src={weather.icon} alt={weather.description} style={{ width: '150px', height: '150px' }} />
+            <div className="flex flex-col sm:flex-row items-center mb-4 fondo-peach rounded-xl p-4">
+              <img src={weather.icon} alt={weather.description} className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40" />
               <div className="ml-4">
-                <div className="text-5xl">{`${weather.temp}°C`}</div>
-                <div className="text-2xl">{weather.description}</div>
+                <div className="text-3xl sm:text-4xl md:text-5xl">{`${weather.temp}°C`}</div>
+                <div className="text-xl sm:text-2xl">{weather.description}</div>
               </div>
               <div className="ml-4 text-left">
-                <div className="text-lg">Sensación térmica: {weather.feels_like}°C</div>
-                <div className="text-lg">Temp. Máxima: {weather.temp_max}°C</div>
-                <div className="text-lg">Temp. Mínima: {weather.temp_min}°C</div>
+                <div className="text-sm sm:text-lg">Sensación térmica: {weather.feels_like}°C</div>
+                <div className="text-sm sm:text-lg">Temp. Máxima: {weather.temp_max}°C</div>
+                <div className="text-sm sm:text-lg">Temp. Mínima: {weather.temp_min}°C</div>
               </div>
             </div>
-            <div className="text-lg">Humedad: {weather.humidity}%</div>
-            <div className="text-lg">Presión: {weather.pressure} hPa</div>
-            <div className="text-lg">Viento: {weather.wind_speed} m/s</div>
-            <div className="text-lg">Chances de lluvia: {weather.rain_chance}%</div>
-            <div className="text-lg">Calidad del aire: {weather.air_quality ? `Índice ${weather.air_quality}` : 'No disponible'}</div>
+            <div className="text-sm sm:text-lg">Humedad: {weather.humidity}%</div>
+            <div className="text-sm sm:text-lg">Presión: {weather.pressure} hPa</div>
+            <div className="text-sm sm:text-lg">Viento: {weather.wind_speed} m/s</div>
+            <div className="text-sm sm:text-lg">Chances de lluvia: {weather.rain_chance}%</div>
+            <div className="text-sm sm:text-lg">Calidad del aire: {weather.air_quality ? `Índice ${weather.air_quality}` : 'No disponible'}</div>
           </div>
         )}
       </div>
@@ -217,7 +216,7 @@ const Home: React.FC = () => {
       {/* seccion de pronostico de clima */}
       <div className="mb-8">
         <h2 className="text-center text-2xl mb-4">Pronóstico del clima</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {forecast.map((day, index) => (
             <div key={index} className="text-center bg-teal-600 p-4 rounded-xl">
               <div>{new Date(day.date).toLocaleDateString()}</div>
@@ -238,30 +237,31 @@ const Home: React.FC = () => {
             <img
               src={getValidImageUrl(news[selectedNewsIndex]?.image_url)}
               alt={news[selectedNewsIndex]?.title}
-              className="w-full h-96 object-cover"
+              className="w-full h-60 sm:h-80 md:h-96 object-cover"
             />
-            <div className="absolute bottom-0 w-full bg-black bg-opacity-50 text-white text-center p-4 text-xl">
+            <div className="absolute bottom-0 w-full bg-black bg-opacity-50 text-white text-center p-4 text-lg sm:text-xl">
               {news[selectedNewsIndex]?.title}
             </div>
           </div>
         )}
       </div>
 
+   
       {/* navegador de noticias */}
-      <div className="flex justify-center mt-8 space-x-4">
+      <div className="flex flex-row flex-wrap justify-center mt-8 space-x-2 sm:space-x-4">
         {news.map((article, index) => (
           <div
             key={index}
             onClick={() => setSelectedNewsIndex(index)}
-            className={`cursor-pointer p-3 ${selectedNewsIndex === index ? 'border-black' : 'border-gray-300'} bg-gray-600 hover:bg-gray-800 rounded-xl mb-4 w-1/5`}
+            className={`cursor-pointer p-2 sm:p-3 ${selectedNewsIndex === index ? 'border-black' : 'border-gray-300'} bg-gray-600 hover:bg-gray-800 rounded-xl mb-4 w-24 h-24 sm:w-32 sm:h-32`}
           >
             <img
               src={getValidImageUrl(article.image_url)}
               alt={article.title}
-              className="w-full h-24 object-cover"
+              className="w-full h-16 sm:h-24 object-cover"
             />
-            <div className="text-center mt-2 text-sm">
-              {article.title.slice(0, 40)}{article.title.length > 40 ? '...' : ''}
+            <div className="text-center mt-1 text-xs sm:text-sm text-ellipsis overflow-hidden whitespace-nowrap">
+              {article.title}
             </div>
           </div>
         ))}
