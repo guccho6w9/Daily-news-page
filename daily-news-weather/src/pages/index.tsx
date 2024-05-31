@@ -15,6 +15,8 @@ const NEWS_API_URL = (country: string) => `https://api.thenewsapi.com/v1/news/to
 const WEATHER_API_URL = (city: string, country: string) => `https://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${WEATHER_API_KEY}&units=metric&lang=es`;
 const FORECAST_API_URL = (city: string, country: string) => `https://api.openweathermap.org/data/2.5/forecast?q=${city},${country}&appid=${WEATHER_API_KEY}&units=metric&lang=es`;
 
+const COUNTRY_API_URL = 'https://restcountries.com/v3.1/name/';
+
 interface Article {
   title: string;
   image_url: string | null;
@@ -41,6 +43,10 @@ interface ForecastData {
   icon: string;
 }
 
+
+
+
+
 const Home: React.FC = () => {
   const [news, setNews] = useState<Article[]>([]);
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -50,6 +56,17 @@ const Home: React.FC = () => {
   const [inputValue, setInputValue] = useState<string>('');
   const [selectedNewsIndex, setSelectedNewsIndex] = useState(0);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const getCountryCode = async (countryName: string) => {
+    try {
+      const response = await axios.get(`${COUNTRY_API_URL}${countryName}`);
+      const countryCode = response.data[0].cca2.toLowerCase(); // Obtiene el código del país y lo convierte a minúsculas
+      return countryCode;
+    } catch (error) {
+      console.error('Error fetching country code:', error);
+      return null;
+    }
+  };
 
   // Fetch articulos de noticias de la api
   const fetchNews = async (country: string) => {
@@ -117,6 +134,7 @@ const Home: React.FC = () => {
     else className = 'background-hot';
     document.body.className = className;
   };
+
   interface ForecastData {
     date: string;
     temp: number;
@@ -125,6 +143,7 @@ const Home: React.FC = () => {
     description: string;
     icon: string;
   }
+
   // Fetch de nuevo cada vez que se cambie la ubicacion
   useEffect(() => {
     const fetchData = async () => {
@@ -154,10 +173,15 @@ const Home: React.FC = () => {
   };
 
   // se maneja el dato del input al hacer click buscar, se separa segun coma
-  const handleSearchClick = () => {
+  const handleSearchClick = async () => {
     const [newCity, newCountry] = inputValue.split(',').map(s => s.trim());
-    setCity(newCity);
-    setCountry(newCountry);
+    const countryCode = await getCountryCode(newCountry);
+    if (countryCode) {
+      setCity(newCity);
+      setCountry(countryCode);
+    } else {
+      alert('No se pudo encontrar el código del país');
+    }
   };
 
   if (loading) {
@@ -170,7 +194,7 @@ const Home: React.FC = () => {
 
   return (
     <div className="p-5 max-w-7xl mx-auto">
-      <h1 className="text-center text-4xl font-bold mb-8 color-teal">Clima actual en {city}, {country}</h1>
+      <h1 className="text-center text-4xl font-bold mb-8 color-teal">Clima actual en {city} </h1>
       {/* seccion de clima */}
       <div className="mb-8">
         <div className="flex justify-center items-center mb-4">
@@ -178,7 +202,7 @@ const Home: React.FC = () => {
             type="text"
             value={inputValue}
             onChange={handleInputChange}
-            placeholder="Ingresa la ciudad y país (e.g., Santiago del Estero, ar)"
+            placeholder="Ingresa la ciudad y país (e.g., Munich, germany)"
             className="border text-black p-2 rounded w-full md:w-1/2"
           />
           <button
@@ -230,7 +254,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* seccion noticias */}
-      <h2 className="text-center text-2xl mb-4">Últimas noticias en {city}, {country}</h2>
+      <h2 className="text-center text-2xl mb-4">Últimas noticias en {city} </h2>
       <div className="relative">
         {news.length > 0 && (
           <div>
@@ -246,7 +270,6 @@ const Home: React.FC = () => {
         )}
       </div>
 
-   
       {/* navegador de noticias */}
       <div className="flex flex-row flex-wrap justify-center mt-8 space-x-2 sm:space-x-4">
         {news.map((article, index) => (
