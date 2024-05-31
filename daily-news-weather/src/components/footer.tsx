@@ -1,7 +1,7 @@
 //footer
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWhatsapp, faLinkedin, faGithub } from '@fortawesome/free-brands-svg-icons' //iconos de marcas 
+import { faWhatsapp, faLinkedin, faGithub } from '@fortawesome/free-brands-svg-icons'; //iconos de marcas 
 import '@/app/globals.css';
 import { useState } from 'react';
 
